@@ -324,7 +324,7 @@ var TilesView = {
       tile.classList.add('float-right');
     }
 
-    tile.classList.add('color-' + this.index % 7);
+    tile.classList.add('color-' + this.index % 10);
 
     container.dataset.index = this.index;
 

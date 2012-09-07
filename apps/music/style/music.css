@@ -383,33 +383,62 @@ body.player-mode #views {
 
 .color-0 {
   color: LightSkyBlue;
-  font-weight: normal;
+  background-image: url('./images/AlbumArt1_small.png');
+  background-size: 100% 100%;
 }
 
 .color-1 {
   color: red;
+  background-image: url('./images/AlbumArt2_small.png');
+  background-size: 100% 100%;
 }
 
 .color-2 {
   color: HotPink;
+  background-image: url('./images/AlbumArt3_small.png');
+  background-size: 100% 100%;
 }
 
 .color-3 {
   color: YellowGreen;
-  font-weight: normal;
+  background-image: url('./images/AlbumArt4_small.png');
+  background-size: 100% 100%;
 }
 
 .color-4 {
   color: turquoise;
+  background-image: url('./images/AlbumArt5_small.png');
+  background-size: 100% 100%;
 }
 
 .color-5 {
   color: orange;
-  font-weight: normal;
+  background-image: url('./images/AlbumArt6_small.png');
+  background-size: 100% 100%;
 }
 
 .color-6 {
   color: white;
+  background-image: url('./images/AlbumArt7_small.png');
+  background-size: 100% 100%;
+}
+
+.color-7 {
+  color: white;
+  background-image: url('./images/AlbumArt8_small.png');
+  background-size: 100% 100%;
+}
+
+.color-8 {
+  color: white;
+  background-image: url('./images/AlbumArt9_small.png');
+  background-size: 100% 100%;
+}
+
+.color-9 {
+  color: white;
+  background-image: url('./images/AlbumArt10_small.png');
+  background-size: 100% 100%;
 }
 
 /* 320x480 phones */
