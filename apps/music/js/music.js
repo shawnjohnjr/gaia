@@ -18,7 +18,7 @@ function init() {
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
   musicdb = new MediaDB('music', parseAudioMetadata, {
-    indexes: ['metadata.album', 'metadata.artist', 'metadata.title']
+    indexes: ['metadata.album', 'metadata.artist', 'metadata.title', 'date']
   });
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -1057,16 +1057,21 @@ var TabBar = {
             changeMode(MODE_LIST);
             ListView.clean();
 
-            var data = {
-              metadata: {
-                title: 'All Songs'
-              }
-            };
+            // this array is for automated playlists
+            var playlistArray = [
+              {metadata: {title: navigator.mozL10n.get('playlists-shuffle-all')}},
+              {metadata: {title: navigator.mozL10n.get('playlists-highest-rated')}},
+              {metadata: {title: navigator.mozL10n.get('playlists-recently-added')}},
+              {metadata: {title: navigator.mozL10n.get('playlists-most-played')}},
+              {metadata: {title: navigator.mozL10n.get('playlists-least-played')}},
+              // update ListView with null result to hide the scan progress
+              null
+            ];
 
-            ListView.update(this.option, data);
+            playlistArray.forEach(function(playlist) {
+              ListView.update(this.option, playlist);
+            }.bind(this));
 
-            // update ListView with null result to hide the scan progress
-            ListView.update(this.option, null);
             break;
           case 'tabs-artists':
           case 'tabs-albums':
