@@ -100,13 +100,15 @@
            The navigation mode is less than full-width so we can see the
            messages display to its right.  -->
       <div class="card-folder-picker card">
-        <div class="fld-folders-header top-header">
-          <button class="fld-accounts-btn header-left-btn">
-            <span class="icon icon-account"></span>
-          </button>
-          <h2 class="fld-folders-header-account-label header-label"></h2>
-        </div>
-        <div class="scrollregion-below-header">
+        <section class="fld-folders-header skin-organic" role="region">
+          <header>
+            <button class="fld-accounts-btn header-left-btn">
+              <span class="icon icon-user"></span>
+            </button>
+            <h1 class="fld-folders-header-account-label"></h1>
+          </header>
+        </section>
+        <div class="scrollregion-below-header folder-scoller-region">
           <div class="fld-accounts-container">
           </div>
           <div class="fld-folders-container show">
@@ -120,15 +122,19 @@
       <!-- Lists the messages in a folder -->
       <div class="card-message-list card">
         <!-- Non-search header -->
-        <div class="msg-list-header top-header msg-nonsearch-only">
-          <button class="msg-folder-list-btn header-left-btn">
-            <span class="icon icon-menu"></span>
-          </button>
-          <h2 class="msg-list-header-folder-label header-label"></h2>
-          <button class="msg-compose-btn header-right-btn">
-            <span class="icon icon-add"></span>
-          </button>
-        </div>
+        <section class="msg-list-header msg-nonsearch-only" role="region">
+          <header>
+            <button class="msg-folder-list-btn">
+              <span class="icon icon-menu">menu</span>
+            </button>
+            <menu type="toolbar">
+              <button class="msg-compose-btn header-right-btn">
+                <span class="icon icon-add">add</span>
+              </button>
+            </menu>
+            <h1 class="msg-list-header-folder-label header-label"></h1>
+          </header>
+        </section>
         <!-- Multi-edit state header -->
         <div class="msg-listedit-header top-edit-header top-header collapsed">
           <button class="msg-listedit-cancel-btn header-left-btn">
@@ -173,7 +179,6 @@
         <div class="msg-list-scrollouter">
           <!-- exists so we can force a minimum height -->
           <div class="msg-list-scrollinner">
-            <div class="msg-list-scroll-padding-top"></div>
             <!-- The search textbox hides under the lip of the messages. 
                  As soon as any typing happens in it, we push the search
                  controls card. -->
@@ -275,16 +280,20 @@
       </div>
 
       <div class="card-compose card">
-        <div class="cmp-compose-header top-header">
-          <button class="cmp-back-btn back-btn header-left-btn">
-            <span class="icon icon-back"></span>
-          </button>
-          <h2 class="cmp-compose-header-label header-label"
-              data-l10n-id="compose-header">ComposE MessagE</h2>
-          <button class="cmp-send-btn header-right-btn">
-            <span class="icon icon-send"></span>
-          </button>
-        </div>
+        <section class="cmp-compose-header" role="region">
+          <header>
+            <a href="#" class="cmp-back-btn">
+              <span class="icon icon-back">BacK</span>
+            </a>
+            <menu type="toolbar">
+              <button class="cmp-send-btn header-right-btn">
+                <span class="icon icon-send">SenD</span>
+              </button>
+            </menu>
+            <h1 class="cmp-compose-header-label"
+              data-l10n-id="compose-header">ComposE MessagE</h1>
+          </header>
+        </section>
         <div class="scrollregion-below-header">
           <div class="cmp-envelope-bar">
             <div class="cmp-envelope-line">
