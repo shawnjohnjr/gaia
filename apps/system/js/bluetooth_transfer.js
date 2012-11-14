@@ -282,7 +282,7 @@ var BluetoothTransfer = {
         NotificationHelper.send(_('transferFinished-receivedCompletedTitle'),
                                 _('transferFinished-completedBody'),
                                 'style/system_updater/images/download.png',
-                                this.openReceivedFile.bind(this, evt.fileName));
+                                this.openReceivedFile.bind(this, evt));
       } else {
         NotificationHelper.send(_('transferFinished-sendingCompletedTitle'),
                                 _('transferFinished-completedBody'),
@@ -303,8 +303,27 @@ var BluetoothTransfer = {
     }
   },
 
-  openReceivedFile: function bt_openReceivedFile(fileName) {
+  openReceivedFile: function bt_openReceivedFile(evt) {
     // TODO: Open received file
+    var storage = navigator.getDeviceStorage('sdcard');
+    var getRequest = storage.get('downloads/bluetooth/' + evt.fileName);
+
+    getRequest.onsuccess = function() {
+      var a = new MozActivity({
+        name: 'open',
+        data: {
+          type: 'audio/mpeg',
+          blob: getRequest.result,
+          filename: 'downloads/bluetooth/' + evt.fileName
+        }
+      });
+
+      console.log('getRequest.result.name: ' + getRequest.result.name);
+    };
+    getRequest.onerror = function() {
+      var errmsg = getRequest.error && getRequest.error.name;
+      console.error('Bluetooth.getFile:', errmsg);
+    }
   }
 
 };
