@@ -791,7 +791,7 @@ function shareFiles(filenames) {
 
   function getBlobForNextFile() {
     if (blobs.length === filenames.length) {
-      shareBlobs(blobs, basenames);
+      shareBlobs(blobs, filenames);
     }
     else {
       var i = blobs.length;

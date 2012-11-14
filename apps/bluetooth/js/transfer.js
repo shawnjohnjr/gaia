@@ -16,7 +16,7 @@ window.addEventListener('localized', function showPanel() {
     activity = activityRequest;
     if (settings && bluetooth &&
         (activity.source.name == 'share') &&
-        (activity.source.data.blobs != null)) {
+        (activity.source.data.filenames != null)) {
       isBluetoothEnabled();
     } else {
       var msg = 'Cannot transfer without blobs data!';
@@ -227,10 +227,19 @@ window.addEventListener('localized', function showPanel() {
     var transferRequest = defaultAdapter.connect(targetDevice.address, 0x1105);
 
     transferRequest.onsuccess = function bt_connSuccess() {
-      var blobs = activity.source.data.blobs;
-      defaultAdapter.sendFile(targetDevice.address, blobs[0]);
-      activity.postResult('transferred');
-      endTransfer();
+      var filenames = activity.source.data.filenames;
+      var storage = navigator.getDeviceStorage('sdcard');
+      var getRequest = storage.get(filenames[0]);
+
+      getRequest.onsuccess = function() {
+        defaultAdapter.sendFile(targetDevice.address, getRequest.result);
+        activity.postResult('transferred');
+        endTransfer();
+      };
+      getRequest.onerror = function() {
+        var errmsg = getRequest.error && getRequest.error.name;
+        console.error('Bluetooth.getFile:', errmsg);
+      }
     };
 
     transferRequest.onerror = function bt_connError() {
