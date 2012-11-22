@@ -13,6 +13,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var TRACKNUM = 'tracknum';
   var IMAGE = 'picture';
   var THUMBNAIL = 'thumbnail';
+  var LENGTH = 'length';
 
   // These two properties are for playlist functionalities
   // not originally metadata from the files
@@ -331,7 +332,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         id3.index = nexttag;
       }
 
-      handleCoverArt(metadata);
+      //handleCoverArt(metadata);
+      getDuration(handleCoverArt.bind(this, metadata));
     }
 
     function readPic(view, size, id) {
@@ -448,7 +450,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
 
       // We've read all the comments, so call the callback
-      handleCoverArt(metadata);
+      //handleCoverArt(metadata);
+      getDuration(handleCoverArt.bind(this, metadata));
     });
   }
 
@@ -491,7 +494,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       if (type === 'moov') {
         try {
           parseMoovAtom(atom, atom.index + size - 8);
-          handleCoverArt(metadata);
+          //handleCoverArt(metadata);
+          getDuration(handleCoverArt.bind(this, metadata));
           return;
         }
         catch (e) {
@@ -702,6 +706,27 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         metadata[THUMBNAIL] = blob;
         metadataCallback(metadata);
       }, 'image/jpeg');
+    }
+  }
+
+  var player = new Audio();
+
+  function getDuration(callback) {
+    var url = URL.createObjectURL(blob);
+    player.src = url;
+
+    player.onerror = function(e) {
+      URL.revokeObjectURL(url);
+      console.warn('player.e: ' + e);
+    }
+
+    player.onloadeddata = function(e) {
+      URL.revokeObjectURL(url);
+      metadata[LENGTH] =
+        player.duration || player.buffered.end(player.buffered.length - 1);
+      callback();
+
+      player.src = null;
     }
   }
 }

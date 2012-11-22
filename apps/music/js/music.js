@@ -583,6 +583,7 @@ function createListElement(option, data, index) {
 
       var lengthSpan = document.createElement('span');
       lengthSpan.className = 'list-song-length';
+      lengthSpan.textContent = formatTime(data.metadata.length) || '??:??';
 
       li.appendChild(indexSpan);
       li.appendChild(titleSpan);
