@@ -84,98 +84,135 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     metadata[TITLE] = blob.name.substring(p1 + 1, p2);
   }
 
+  // use one audio tag to get duration
+  // reuse it to avoid OOM problem
+  var player = new Audio();
+
+  function getDuration(callback) {
+    var url = URL.createObjectURL(blob);
+    player.src = url;
+
+    player.onerror = function(e) {
+      URL.revokeObjectURL(url);
+      console.warn('player.e: ' + e);
+      callback();
+    }
+
+    player.onloadeddata = function(e) {
+      URL.revokeObjectURL(url);
+
+      var originalEndTime =
+        (player.duration && player.duration != 'Infinity') ?
+        player.duration :
+        player.buffered.end(player.buffered.length - 1);
+
+      var length = (originalEndTime > 1000000) ?
+        Math.floor(originalEndTime / 1000000) :
+        Math.floor(originalEndTime);
+
+      metadata[LENGTH] = length;
+      callback();
+
+      player.src = null;
+    }
+  }
+
+  getDuration(parseBlob);
+
   // Read the start of the file, figure out what kind it is, and call
   // the appropriate parser.  Start off with an 8kb chunk of data.
   // If the file contains album art, we'll have to go back and read
   // a bigger chunk, but if it doesn't we probably won't need another read.
-  var headersize = Math.min(8 * 1024, blob.size);
-  BlobView.get(blob, 0, headersize, function(header, error) {
-    if (error) {
-      errorCallback(error);
-      return;
-    }
-
-    try {
-      var magic = header.getASCIIText(0, 11);
-
-      if (magic.substring(0, 3) === 'ID3') {
-        // parse ID3v2 tags in an MP3 file
-        parseID3v2Metadata(header);
+  function parseBlob() {
+    var headersize = Math.min(8 * 1024, blob.size);
+    BlobView.get(blob, 0, headersize, function(header, error) {
+      if (error) {
+        errorCallback(error);
+        return;
       }
-      else if (magic.substring(0, 4) === 'OggS') {
-        // parse metadata from an Ogg Vorbis file
-        parseOggMetadata(header);
-      }
-      else if (magic.substring(4, 8) === 'ftyp' &&
-               magic.substring(8, 12) in MP4Types) {
-        // parse metadata from an MP4 file
-        parseMP4Metadata(header);
-      }
-      else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
-        // If this looks like an MP3 file, then look for ID3v1 metadata
-        // tags at the end of the file. But even if there is no metadata
-        // treat this as a playable file.
 
-        // Read bytes from the end of the file to see if it has
-        // ID3v1 tags there. But make sure it is big enough first
-        if (blob.size < 128) {
-          errorCallback('unknown file type; file is too small');
-          return;
+      try {
+        var magic = header.getASCIIText(0, 11);
+
+        if (magic.substring(0, 3) === 'ID3') {
+          // parse ID3v2 tags in an MP3 file
+          parseID3v2Metadata(header);
         }
+        else if (magic.substring(0, 4) === 'OggS') {
+          // parse metadata from an Ogg Vorbis file
+          parseOggMetadata(header);
+        }
+        else if (magic.substring(4, 8) === 'ftyp' &&
+                 magic.substring(8, 12) in MP4Types) {
+          // parse metadata from an MP4 file
+          parseMP4Metadata(header);
+        }
+        else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
+          // If this looks like an MP3 file, then look for ID3v1 metadata
+          // tags at the end of the file. But even if there is no metadata
+          // treat this as a playable file.
 
-        BlobView.get(blob, blob.size - 128, 128, function(footer, error) {
-          if (error) {
-            errorCallback(error);
+          // Read bytes from the end of the file to see if it has
+          // ID3v1 tags there. But make sure it is big enough first
+          if (blob.size < 128) {
+            errorCallback('unknown file type; file is too small');
             return;
           }
 
-          try {
-            var magic = footer.getASCIIText(0, 3);
-            if (magic === 'TAG') {
-              // It is an MP3 file with ID3v1 tags
-              parseID3v1Metadata(footer);
+          BlobView.get(blob, blob.size - 128, 128, function(footer, error) {
+            if (error) {
+              errorCallback(error);
+              return;
             }
-            else {
-              // It is an MP3 file with no metadata. We return the default
-              // metadata object that just contains the filename as the title
-              metadataCallback(metadata);
+
+            try {
+              var magic = footer.getASCIIText(0, 3);
+              if (magic === 'TAG') {
+                // It is an MP3 file with ID3v1 tags
+                parseID3v1Metadata(footer);
+              }
+              else {
+                // It is an MP3 file with no metadata. We return the default
+                // metadata object that just contains the filename as the title
+                metadataCallback(metadata);
+              }
             }
-          }
-          catch (e) {
-            errorCallback(e);
-          }
-        });
-      }
-      else {
-        // This is some kind of file that we don't know about.
-        // Let's see if we can play it.
-        var player = new Audio();
-        player.mozAudioChannelType = 'content';
-        var canplay = blob.type && player.canPlayType(blob.type);
-        if (canplay === 'probably') {
-          metadataCallback(metadata);
+            catch (e) {
+              errorCallback(e);
+            }
+          });
         }
         else {
-          var url = URL.createObjectURL(blob);
-          player.src = url;
-
-          player.onerror = function() {
-            URL.revokeObjectURL(url);
-            errorCallback('Unplayable music file');
-          };
-
-          player.oncanplay = function() {
-            URL.revokeObjectURL(url);
+          // This is some kind of file that we don't know about.
+          // Let's see if we can play it.
+          var player = new Audio();
+          player.mozAudioChannelType = 'content';
+          var canplay = blob.type && player.canPlayType(blob.type);
+          if (canplay === 'probably') {
             metadataCallback(metadata);
-          };
+          }
+          else {
+            var url = URL.createObjectURL(blob);
+            player.src = url;
+
+            player.onerror = function() {
+              URL.revokeObjectURL(url);
+              errorCallback('Unplayable music file');
+            };
+
+            player.oncanplay = function() {
+              URL.revokeObjectURL(url);
+              metadataCallback(metadata);
+            };
+          }
         }
       }
-    }
-    catch (e) {
-      console.error('parseAudioMetadata:', e, e.stack);
-      errorCallback(e);
-    }
-  });
+      catch (e) {
+        console.error('parseAudioMetadata:', e, e.stack);
+        errorCallback(e);
+      }
+    });
+  }
 
   //
   // Parse ID3v1 metadata from the 128 bytes footer at the end of a file.
@@ -703,37 +740,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         metadata[THUMBNAIL] = blob;
         metadataCallback(metadata);
       }, 'image/jpeg');
-    }
-  }
-
-  var player = new Audio();
-
-  function getDuration(callback) {
-    var url = URL.createObjectURL(blob);
-    player.src = url;
-
-    player.onerror = function(e) {
-      URL.revokeObjectURL(url);
-      console.warn('player.e: ' + e);
-      callback();
-    }
-
-    player.onloadeddata = function(e) {
-      URL.revokeObjectURL(url);
-
-      var originalEndTime =
-        (player.duration && player.duration != 'Infinity') ?
-        player.duration :
-        player.buffered.end(player.buffered.length - 1);
-
-      var length = (originalEndTime > 1000000) ?
-        Math.floor(originalEndTime / 1000000) :
-        Math.floor(originalEndTime);
-
-      metadata[LENGTH] = length;
-      callback();
-
-      player.src = null;
     }
   }
 }
