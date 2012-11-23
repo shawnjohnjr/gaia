@@ -332,8 +332,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         id3.index = nexttag;
       }
 
-      //handleCoverArt(metadata);
-      getDuration(handleCoverArt.bind(this, metadata));
+      handleCoverArt(metadata);
     }
 
     function readPic(view, size, id) {
@@ -450,8 +449,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
 
       // We've read all the comments, so call the callback
-      //handleCoverArt(metadata);
-      getDuration(handleCoverArt.bind(this, metadata));
+      handleCoverArt(metadata);
     });
   }
 
@@ -494,8 +492,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       if (type === 'moov') {
         try {
           parseMoovAtom(atom, atom.index + size - 8);
-          //handleCoverArt(metadata);
-          getDuration(handleCoverArt.bind(this, metadata));
+          handleCoverArt(metadata);
           return;
         }
         catch (e) {
@@ -718,12 +715,22 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     player.onerror = function(e) {
       URL.revokeObjectURL(url);
       console.warn('player.e: ' + e);
+      callback();
     }
 
     player.onloadeddata = function(e) {
       URL.revokeObjectURL(url);
-      metadata[LENGTH] =
-        player.duration || player.buffered.end(player.buffered.length - 1);
+
+      var originalEndTime =
+        (player.duration && player.duration != 'Infinity') ?
+        player.duration :
+        player.buffered.end(player.buffered.length - 1);
+
+      var length = (originalEndTime > 1000000) ?
+        Math.floor(originalEndTime / 1000000) :
+        Math.floor(originalEndTime);
+
+      metadata[LENGTH] = length;
       callback();
 
       player.src = null;
