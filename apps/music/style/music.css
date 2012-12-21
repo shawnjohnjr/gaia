@@ -609,7 +609,7 @@ button::-moz-focus-inner {
   position: relative;
   width: 100%;
   height: 13%;
-  background: -moz-linear-gradient(center top , #151515 0%, #252525 65%, #282828 70%, #353535 72%, #151515 73%, #151515 100%) repeat scroll 0 0 transparent;
+  background: -moz-linear-gradient(center top, #151515 0%, #252525 64%, #282828 68%, #404040 70%, #151515 71%, #151515 100%) repeat scroll 0 0 transparent;
 }
 
 #player-seek-elapsed, 
@@ -637,13 +637,13 @@ button::-moz-focus-inner {
 #player-seek-bar-progress {
   -moz-appearance: none;
   position: absolute;
-  top: calc(50% - 0.25rem);
+  top: calc(50% - 0.15rem);
   width: 100%;
-  height: 0.5rem;
+  height: 0.3rem;
   border-radius: 5px;
   border-width: 0px;
   box-shadow: 1px 1px rgba(255, 255, 255, 0.2);
-  background-color: rgba(0, 0, 0, 0.7);
+  background: -moz-linear-gradient(center top, #151515 0%, #454545 100%) repeat scroll 0 0 transparent;
 }
 
 #player-seek-bar-progress::-moz-progress-bar {

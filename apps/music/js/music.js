@@ -967,6 +967,7 @@ var PlayerView = {
     this.dataSource = [];
     this.currentIndex = 0;
     this.backgroundIndex = 0;
+    this.setSeekBar(0, 1, 0); // Set 0 to default seek position
 
     asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
@@ -1554,9 +1555,6 @@ var TabBar = {
               musicdb.enumerate('metadata.' + this.option, null,
                                 'nextunique',
                                 ListView.update.bind(ListView, this.option));
-
-            break;
-          case 'tabs-more':
 
             break;
         }

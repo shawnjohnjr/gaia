@@ -675,12 +675,20 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     }
   }
 
+  function hashcode(s) {
+    var h = 0;
+    for(var i = 0, n = s.length; i < n; i++)
+    h = (h * 33 + s.charCodeAt(i)) & 0xFFFFFFFF;
+    return h;
+  }
+
   // Load an image from a blob into an <img> tag, and then use that
   // to get its dimensions and create a thumbnail. Store these values in
   // the metadata object if they are not already there, and then continue
   // to the callback function
   function handleCoverArt(metadata) {
     if (!metadata[IMAGE]) {
+      metadata[IMAGE] = {hash: hashcode(metadata[ALBUM])};
       metadataCallback(metadata);
       return;
     }
