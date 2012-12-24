@@ -1342,7 +1342,7 @@ var PlayerView = {
     this.seekBar.max = endTime;
     this.seekBar.value = currentTime;
 
-    var x = ((currentTime / endTime) * this.seekBar.clientWidth - this.seekIndicator.clientWidth/2) + 'px';
+    var x = ((currentTime / endTime) * this.seekBar.offsetWidth - this.seekIndicator.offsetWidth / 2) + 'px';
     this.seekIndicator.style.transform = 'translateX(' + x + ')';
 
     this.seekElapsed.textContent = formatTime(currentTime);
@@ -1431,8 +1431,9 @@ var PlayerView = {
       case 'mousedown':
       case 'mousemove':
         if (evt.type === 'mousedown') {
-          this.isSeeking = true;
           target.setCapture(false);
+          this.isSeeking = true;
+          this.seekIndicator.classList.add('highlight');
         }
         if (this.isSeeking) {
           var x = 0;
@@ -1451,6 +1452,7 @@ var PlayerView = {
         break;
       case 'mouseup':
         this.isSeeking = false;
+        this.seekIndicator.classList.remove('highlight');
         // target is the seek bar, and evt.layerX is the moved position
         var seekTime = evt.layerX / target.clientWidth * this.seekBar.max;
         this.seekAudio(seekTime);
