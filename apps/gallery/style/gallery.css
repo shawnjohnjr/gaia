@@ -185,6 +185,8 @@ section {
 }
 
 .thumbnail {
+  width: 159px;
+  height: 159px;
   margin-right: 1px;
   margin-bottom: 1px;
   padding: 0;
