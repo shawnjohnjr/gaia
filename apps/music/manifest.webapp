@@ -46,5 +46,9 @@
     "120": "/style/icons/Music.png",
     "60": "/style/icons/60/Music.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "messages": [
+     { "media-button": "index.html" }
+  ]
+
 }

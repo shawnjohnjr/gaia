@@ -516,7 +516,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       // '0x111E' is a service id to distigush connection type.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-      var req = defaultAdapter.disconnect(0x111E);
+      var req = defaultAdapter.disconnect(0x110D);
+      dump("---------------------disconnect a2dp----------------------------------");
       req.onerror = function() {
         showDeviceConnected(device.address, true);
       };
@@ -538,7 +539,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       // '0x111E' is a service id to distigush connection type.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-      var req = defaultAdapter.connect(device.address, 0x111E);
+      var req = defaultAdapter.connect(device.address, 0x110D);
+      dump("---------------------connect a2dp----------------------------------");
       req.onerror = function() {
         window.alert(_('error-connect-msg'));
         showDeviceConnected(connectingAddress, false);

@@ -94,11 +94,14 @@ var PlayerView = {
     this.currentIndex = 0;
     this.backgroundIndex = 0;
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
+    this.intervalID = null;
+    this.isContextmenu = false;
 
     if (needSettings)
       asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
     this.view.addEventListener('click', this);
+    this.view.addEventListener('contextmenu', this);
 
     // Seeking audio too frequently causes the Desktop build hangs
     // A related Bug 739094 in Bugzilla
@@ -478,6 +481,20 @@ var PlayerView = {
     this.play(realIndex);
   },
 
+  fastSeeking: function pv_fastSeeking(option) {
+    this.isSeeking = true;
+    var offset = (option === 'forward') ? 2 : -2;
+
+    this.intervalID = window.setInterval(function() {
+      this.seekAudio(this.audio.currentTime + offset);
+    }.bind(this), 15);
+  },
+
+  cancelFastSeeking: function pv_cancelFastSeeking() {
+    this.isSeeking = false;
+    window.clearInterval(this.intervalID);
+  },
+
   updateSeekBar: function pv_updateSeekBar() {
     if (this.isPlaying) {
       this.seekAudio();
@@ -534,6 +551,17 @@ var PlayerView = {
 
     switch (evt.type) {
       case 'click':
+        if (this.isContextmenu) {
+          this.isContextmenu = false;
+
+          // If we reach here, the contextmenu event was already fired
+          // and user's finger leaves the panel so the click event fires
+          // this means if fastSeeking was triggered, we should cancel it
+          if (this.intervalID)
+            this.cancelFastSeeking();
+          return;
+        }
+
         switch (target.id) {
           case 'player-cover':
           case 'player-cover-image':
@@ -638,6 +666,14 @@ var PlayerView = {
           var seekTime = x * this.seekBar.max;
           this.seekAudio(seekTime);
         }
+        break;
+      case 'contextmenu':
+        this.isContextmenu = true;
+
+        if (target.id === 'player-controls-next')
+          this.fastSeeking('forward');
+        if (target.id === 'player-controls-previous')
+          this.fastSeeking('backward');
         break;
       case 'timeupdate':
         if (!this.isSeeking)

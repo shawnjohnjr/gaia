@@ -102,6 +102,10 @@ function init() {
 
     // Concurrently, start scanning for new music
     musicdb.scan();
+
+    // We have to wait the MediaDB ready then we may able to play songs
+    // after we received media commands from AVRCP or Headphones wire control?
+    navigator.mozSetMessageHandler('media-button', MediaCommandHandler);
   };
 
   var filesDeletedWhileScanning = 0;
@@ -1087,6 +1091,78 @@ var TabBar = {
     }
   }
 };
+
+// Commands for AVRCP
+// Note for release commands
+// We only use FAST_FORWARD_RELEASE and REWIND_RELEASE
+// not sure if we will use the other release commands in the future
+// just defined here and make sure Music app knows all these commands
+var AVRCP = {
+  PLAY_PRESS: 'media-play-button-press',
+  PLAY_RELEASE: 'media-play-button-release',
+  STOP_PRESS: 'media-stop-button-press',
+  STOP_RELEASE: 'media-stop-button-release',
+  FORWARD_PRESS: 'media-forward-button-press',
+  FORWARD_RELEASE: 'media-forward-button-release',
+  BACKWARD_PRESS: 'media-backward-button-press',
+  BACKWARD_RELEASE: 'media-backward-button-release',
+  FAST_FORWARD_PRESS: 'media-fastforward-button-press',
+  FAST_FORWARD_RELEASE: 'media-fastforward-button-release',
+  REWIND_PRESS: 'media-rewind-button-press',
+  REWIND_RELEASE: 'media-rewind-button-release'
+};
+
+function MediaCommandHandler(message) {
+  // We only handle AVRCP presses when PlayerView has a playing playlist
+  // except AVRCP.PLAY_PRESS because it might be a remote command
+  // that system ask Music app to launch and play in shffule order
+  if (PlayerView.dataSource.length != 0) {
+    switch (message) {
+      case AVRCP.PLAY_PRESS:
+        if (PlayerView.isPlaying)
+          PlayerView.pause();
+        else
+          PlayerView.play();
+        break;
+      case AVRCP.STOP_PRESS:
+        // stop and back to the previous mode
+        PlayerView.stop();
+        PlayerView.clean();
+        playerTitle = null;
+
+        // To leave player mode and set the correct title to the TitleBar
+        // we have to decide which mode we should back to when the player stops
+        var stopToMode = (currentMode != MODE_PLAYER) ? currentMode : fromMode;
+        changeMode(stopToMode);
+        break;
+      case AVRCP.FORWARD_PRESS:
+        PlayerView.next();
+        break;
+      case AVRCP.BACKWARD_PRESS:
+        PlayerView.previous();
+        break;
+      case AVRCP.FAST_FORWARD_PRESS:
+        PlayerView.fastSeeking('forward');
+        break;
+      case AVRCP.REWIND_PRESS:
+        PlayerView.fastSeeking('backward');
+        break;
+      case AVRCP.FAST_FORWARD_RELEASE:
+      case AVRCP.REWIND_RELEASE:
+        PlayerView.cancelFastSeeking();
+        break;
+    }
+  } else if (message === AVRCP.PLAY_PRESS) {
+    musicdb.getAll(function AVRCP_getAll(dataArray) {
+      PlayerView.setSourceType(TYPE_MIX);
+      PlayerView.dataSource = dataArray;
+      PlayerView.setShuffle(true);
+      PlayerView.play(PlayerView.shuffledList[0]);
+
+      changeMode(MODE_PLAYER);
+    });
+  }
+}
 
 // Application start from here after 'DOMContentLoaded' event is fired.
 // Initialize the view objects and default mode is TILES.
