@@ -52,6 +52,9 @@ function ComposeCard(domNode, mode, args) {
       this.onContainerClick.bind(this));
   }
 
+  var attachmentBtn = domNode.getElementsByClassName('cmp-attachment-add');
+  attachmentBtn[0].addEventListener('click', this.onAttachmentAdd.bind(this));
+
   // Add subject focus for larger hitbox
   var subjectContainer = domNode.querySelector('.cmp-subject');
   subjectContainer.addEventListener('click', function subjectFocus() {
@@ -474,6 +477,26 @@ ComposeCard.prototype = {
           self.insertBubble(emt, this.result.name, this.result.email);
           self.sendButton.setAttribute('aria-disabled', 'false');
         }
+      }
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
+  },
+
+  onAttachmentAdd: function(event) {
+    event.stopPropagation();
+    var contactBtn = event.target;
+    var self = this;
+
+    try {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: ['image/jpeg', 'audio/mpeg']
+        }
+      });
+      activity.onsuccess = function success() {
+
       }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);

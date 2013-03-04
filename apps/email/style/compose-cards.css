@@ -56,7 +56,8 @@ input.cmp-subject-text {
   margin: 0.3rem 0;
 }
 
-.cmp-contact-add {
+.cmp-contact-add,
+.cmp-file-add {
   background: url("images/add-contact.png") no-repeat scroll center transparent;
   width: 2rem;
   height: 2rem;
