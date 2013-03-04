@@ -305,6 +305,13 @@ var PlayerView = {
     }
   },
 
+  getPlayingStatus: function pv_getPlayingStatus() {
+    var metadata = this.dataSource[this.currentIndex].metadata;
+    metadata.isPlaying = this.isPlaying;
+
+    return metadata;
+  },
+
   play: function pv_play(targetIndex, backgroundIndex) {
     this.isPlaying = true;
 
