@@ -305,11 +305,24 @@ var PlayerView = {
     }
   },
 
-  getPlayingStatus: function pv_getPlayingStatus() {
+  updatePlayingStatus: function pv_updatePlayingStatus() {
+    // Update the playing information to AVRCP devices
     var metadata = this.dataSource[this.currentIndex].metadata;
     metadata.isPlaying = this.isPlaying;
+    metadata.currentTime = this.audio.currentTime;
+    metadata.duration = this.audio.duration;
 
-    return metadata;
+    // Just add the functions or api here
+    // and Music player will update for you at the right time
+    // note that metadata is the object that contains
+    // all the useful information such as:
+    // - metadata.album
+    // - metadata.artist
+    // - metadata.title
+    // - metadata.isPlaying
+    // - metadata.tracknum
+    // - metadata.currentTime
+    // - metadata.duration
   },
 
   play: function pv_play(targetIndex, backgroundIndex) {
@@ -354,6 +367,8 @@ var PlayerView = {
       musicdb.getFile(songData.name, function(file) {
         this.setAudioSrc(file, true);
       }.bind(this));
+
+      this.updatePlayingStatus();
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // if we reach here, that means we want to a blob
       // When we have to play a blob, we need to parse the metadata
@@ -376,6 +391,8 @@ var PlayerView = {
     } else {
       // If we reach here, the player is paused so resume it
       this.audio.play();
+
+      this.updatePlayingStatus();
     }
   },
 
@@ -389,6 +406,8 @@ var PlayerView = {
     }
 
     this.audio.pause();
+
+    this.updatePlayingStatus();
   },
 
   stop: function pv_stop() {
@@ -683,8 +702,10 @@ var PlayerView = {
           this.fastSeeking('backward');
         break;
       case 'timeupdate':
-        if (!this.isSeeking)
+        if (!this.isSeeking) {
           this.updateSeekBar();
+          this.updatePlayingStatus();
+        }
 
         // Since we don't always get reliable 'ended' events, see if
         // we've reached the end this way.
