@@ -311,6 +311,8 @@ var PlayerView = {
     metadata.isPlaying = this.isPlaying;
     metadata.currentTime = this.audio.currentTime;
     metadata.duration = this.audio.duration;
+    metadata.trackNumber = this.currentIndex + 1;
+    metadata.totalTracks = this.dataSource.length;
 
     // Just add the functions or api here
     // and Music player will update for you at the right time
@@ -320,9 +322,10 @@ var PlayerView = {
     // - metadata.artist
     // - metadata.title
     // - metadata.isPlaying
-    // - metadata.tracknum
     // - metadata.currentTime
     // - metadata.duration
+    // - metadata.trackNumber
+    // - metadata.totalTracks
   },
 
   play: function pv_play(targetIndex, backgroundIndex) {
