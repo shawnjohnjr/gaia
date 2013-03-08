@@ -322,10 +322,20 @@ var PlayerView = {
     // - metadata.artist
     // - metadata.title
     // - metadata.isPlaying
-    // - metadata.currentTime
     // - metadata.duration
     // - metadata.trackNumber
     // - metadata.totalTracks
+  },
+
+  getCurrentTime: function pv_getCurrentTime() {
+    // The return object contains:
+    // - metadata.currentTime
+    // - metadata.duration
+    // for updating the song position and duration
+    // AVRCP can call this method to get the current time
+
+    return {duration: this.audio.duration,
+            currentTime: this.audio.currentTime};
   },
 
   play: function pv_play(targetIndex, backgroundIndex) {
@@ -705,10 +715,8 @@ var PlayerView = {
           this.fastSeeking('backward');
         break;
       case 'timeupdate':
-        if (!this.isSeeking) {
+        if (!this.isSeeking)
           this.updateSeekBar();
-          this.updatePlayingStatus();
-        }
 
         // Since we don't always get reliable 'ended' events, see if
         // we've reached the end this way.
