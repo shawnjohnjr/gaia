@@ -21,6 +21,7 @@ var SETTINGS_OPTION_KEY = 'settings_option_key';
 // A related Bug 809106 in Bugzilla
 var acm = navigator.mozAudioChannelManager;
 
+var defaultAdapter = null;
 if (acm) {
   acm.addEventListener('headphoneschange', function onheadphoneschange() {
     if (!acm.headphones && PlayerView.isPlaying) {
@@ -117,6 +118,11 @@ var PlayerView = {
     // A timer we use to work around
     // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
     this.endedTimer = null;
+    var bluetooth = window.navigator.mozBluetooth;
+    var req = bluetooth.getDefaultAdapter();
+    req.onsuccess = function bt_getAdapterSuccess() {
+	          defaultAdapter = req.result;
+    };
   },
 
   clean: function pv_clean() {
@@ -315,6 +321,10 @@ var PlayerView = {
     metadata.totalTracks = this.dataSource.length;
 
     // Just add the functions or api here
+    //shawn
+    //
+    dump('---------------- sendMetaData ------------------------------');
+    defaultAdapter.sendMetaData(metadata);
     // and Music player will update for you at the right time
     // note that metadata is the object that contains
     // all the useful information such as:
