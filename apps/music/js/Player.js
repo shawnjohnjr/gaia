@@ -91,6 +91,7 @@ var PlayerView = {
 
     this.isPlaying = false;
     this.isSeeking = false;
+    this.isStopped = true;
     this.dataSource = [];
     this.currentIndex = 0;
     this.backgroundIndex = 0;
@@ -121,7 +122,10 @@ var PlayerView = {
     var bluetooth = window.navigator.mozBluetooth;
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_getAdapterSuccess() {
+	          dump('avrcp13 ----bt_getAdapterSuccess--------');
 	          defaultAdapter = req.result;
+		  if (defaultAdapter == null)
+			  dump('avrcp13 defaultAdapter is null');
     };
   },
 
@@ -311,7 +315,7 @@ var PlayerView = {
     }
   },
 
-  updatePlayingStatus: function pv_updatePlayingStatus() {
+  updateMetadataStatus: function pv_updateMetadataStatus() {
     // Update the playing information to AVRCP devices
     var metadata = this.dataSource[this.currentIndex].metadata;
     metadata.isPlaying = this.isPlaying;
@@ -323,7 +327,7 @@ var PlayerView = {
     // Just add the functions or api here
     //shawn
     //
-    dump('---------------- sendMetaData ------------------------------');
+    dump('avrcp13 ---------------- sendMetaData ------------------------------');
     defaultAdapter.sendMetaData(metadata);
     // and Music player will update for you at the right time
     // note that metadata is the object that contains
@@ -337,19 +341,26 @@ var PlayerView = {
     // - metadata.totalTracks
   },
 
-  getCurrentTime: function pv_getCurrentTime() {
-    // The return object contains:
-    // - metadata.currentTime
-    // - metadata.duration
-    // for updating the song position and duration
-    // AVRCP can call this method to get the current time
+  updatePlayingStatus: function pv_updatePlayingStatus() {
+    var info = {status: null,
+                duration: this.audio.duration,
+                currentTime: this.audio.currentTime};
 
-    return {duration: this.audio.duration,
-            currentTime: this.audio.currentTime};
+    if (this.isStpped)
+      info.status = 'stop';
+    else if (this.isPlaying)
+      info.status = 'play';
+    else if (!this.isPlaying)
+      info.status = 'pasue';
+
+
+    return info;
+
   },
 
   play: function pv_play(targetIndex, backgroundIndex) {
     this.isPlaying = true;
+    this.isStopped = false;
 
     // Hold a wake lock to prevent from sleeping
     if (!cpuLock)
@@ -391,7 +402,7 @@ var PlayerView = {
         this.setAudioSrc(file, true);
       }.bind(this));
 
-      this.updatePlayingStatus();
+      this.updateMetadataStatus();
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // if we reach here, that means we want to a blob
       // When we have to play a blob, we need to parse the metadata
@@ -414,9 +425,9 @@ var PlayerView = {
     } else {
       // If we reach here, the player is paused so resume it
       this.audio.play();
-
-      this.updatePlayingStatus();
     }
+
+    this.updatePlayingStatus();
   },
 
   pause: function pv_pause() {
@@ -434,9 +445,13 @@ var PlayerView = {
   },
 
   stop: function pv_stop() {
+    this.isStopped = true;
+
     this.pause();
     this.audio.removeAttribute('src');
     this.audio.load();
+
+    this.updatePlayingStatus();
   },
 
   next: function pv_next(isAutomatic) {
@@ -446,6 +461,10 @@ var PlayerView = {
       this.setAudioSrc(this.dataSource);
       return;
     }
+
+    // Pause before starts a new song
+    this.pause();
+
     // We only repeat a song automatically. (when the song is ended)
     // If users click skip forward, player will go on to next one
     if (this.repeatOption === REPEAT_SONG && isAutomatic) {

@@ -106,6 +106,7 @@ function init() {
     // We have to wait the MediaDB ready then we may able to play songs
     // after we received media commands from AVRCP or Headphones wire control?
     navigator.mozSetMessageHandler('media-button', MediaCommandHandler);
+    navigator.mozSetMessageHandler('bluetooth-avrcp-playstatus', AvrcpPlayStatusHandler);
   };
 
   var filesDeletedWhileScanning = 0;
@@ -1100,6 +1101,8 @@ var TabBar = {
 var AVRCP = {
   PLAY_PRESS: 'media-play-button-press',
   PLAY_RELEASE: 'media-play-button-release',
+  PAUSE_PRESS: 'media-pause-button-press',
+  PAUSE_RELEASE: 'media-pause-button-release',
   STOP_PRESS: 'media-stop-button-press',
   STOP_RELEASE: 'media-stop-button-release',
   FORWARD_PRESS: 'media-forward-button-press',
@@ -1113,55 +1116,76 @@ var AVRCP = {
 };
 
 function MediaCommandHandler(message) {
-  // We only handle AVRCP presses when PlayerView has a playing playlist
-  // except AVRCP.PLAY_PRESS because it might be a remote command
-  // that system ask Music app to launch and play in shffule order
-  if (PlayerView.dataSource.length != 0) {
-    switch (message) {
-      case AVRCP.PLAY_PRESS:
-        if (PlayerView.isPlaying)
-          PlayerView.pause();
-        else
-          PlayerView.play();
-        break;
-      case AVRCP.STOP_PRESS:
-        // stop and back to the previous mode
-        PlayerView.stop();
-        PlayerView.clean();
-        playerTitle = null;
+  LazyLoader.load('js/metadata_scripts.js', function() {
+    if (typeof PlayerView === 'undefined') {
+      LazyLoader.load('js/Player.js', function() {
+        PlayerView.init(true);
 
-        // To leave player mode and set the correct title to the TitleBar
-        // we have to decide which mode we should back to when the player stops
-        var stopToMode = (currentMode != MODE_PLAYER) ? currentMode : fromMode;
-        changeMode(stopToMode);
-        break;
-      case AVRCP.FORWARD_PRESS:
-        PlayerView.next();
-        break;
-      case AVRCP.BACKWARD_PRESS:
-        PlayerView.previous();
-        break;
-      case AVRCP.FAST_FORWARD_PRESS:
-        PlayerView.fastSeeking('forward');
-        break;
-      case AVRCP.REWIND_PRESS:
-        PlayerView.fastSeeking('backward');
-        break;
-      case AVRCP.FAST_FORWARD_RELEASE:
-      case AVRCP.REWIND_RELEASE:
-        PlayerView.cancelFastSeeking();
-        break;
+        processAVRCP();
+      });
+    }else {
+      processAVRCP();
     }
-  } else if (message === AVRCP.PLAY_PRESS) {
-    musicdb.getAll(function AVRCP_getAll(dataArray) {
-      PlayerView.setSourceType(TYPE_MIX);
-      PlayerView.dataSource = dataArray;
-      PlayerView.setShuffle(true);
-      PlayerView.play(PlayerView.shuffledList[0]);
+  });
 
-      changeMode(MODE_PLAYER);
-    });
-  }
+  function processAVRCP() {
+    // We only handle AVRCP presses when PlayerView has a playing playlist
+    // except AVRCP.PLAY_PRESS because it might be a remote command
+    // that system ask Music app to launch and play in shffule order
+    if (PlayerView.dataSource.length != 0) {
+      switch (message) {
+        case AVRCP.PLAY_PRESS:
+          if (!PlayerView.isPlaying)
+            PlayerView.play();
+          break;
+        case AVRCP.PAUSE_PRESS:
+         if (PlayerView.isPlaying)
+            PlayerView.pause();
+          break;
+        case AVRCP.STOP_PRESS:
+          // stop and back to the previous mode
+          PlayerView.stop();
+          PlayerView.clean();
+          playerTitle = null;
+
+          // To leave player mode and set the correct title to the TitleBar
+          // we have to decide which mode we should back to when the player stops
+          var stopToMode = (currentMode != MODE_PLAYER) ? currentMode : fromMode;
+          changeMode(stopToMode);
+          break;
+        case AVRCP.FORWARD_PRESS:
+          PlayerView.next();
+          break;
+        case AVRCP.BACKWARD_PRESS:
+          PlayerView.previous();
+          break;
+        case AVRCP.FAST_FORWARD_PRESS:
+          PlayerView.fastSeeking('forward');
+          break;
+        case AVRCP.REWIND_PRESS:
+          PlayerView.fastSeeking('backward');
+          break;
+        case AVRCP.FAST_FORWARD_RELEASE:
+        case AVRCP.REWIND_RELEASE:
+          PlayerView.cancelFastSeeking();
+          break;
+      }
+    } else if (message === AVRCP.PLAY_PRESS) {
+      musicdb.getAll(function AVRCP_getAll(dataArray) {
+        PlayerView.setSourceType(TYPE_MIX);
+        PlayerView.dataSource = dataArray;
+        PlayerView.setShuffle(true);
+        PlayerView.play(PlayerView.shuffledList[0]);
+
+        changeMode(MODE_PLAYER);
+      });
+    }
+  };
+}
+
+function AvrcpPlayStatusHandler(message) {
+//send currently playStatus update
+  dump('avrcp13------AvrcpPlayStatus');
 }
 
 // Application start from here after 'DOMContentLoaded' event is fired.
