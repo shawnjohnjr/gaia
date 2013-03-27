@@ -106,7 +106,7 @@ function init() {
     // We have to wait the MediaDB ready then we may able to play songs
     // after we received media commands from AVRCP or Headphones wire control?
     navigator.mozSetMessageHandler('media-button', MediaCommandHandler);
-    navigator.mozSetMessageHandler('bluetooth-avrcp-playstatus', AvrcpPlayStatusHandler);
+    //navigator.mozSetMessageHandler('bluetooth-avrcp-playstatus', AvrcpPlayStatusHandler);
   };
 
   var filesDeletedWhileScanning = 0;

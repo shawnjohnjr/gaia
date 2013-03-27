@@ -127,6 +127,25 @@ var PlayerView = {
 		  if (defaultAdapter == null)
 			  dump('avrcp13 defaultAdapter is null');
     };
+    var self = this;
+    navigator.mozSetMessageHandler('bluetooth-avrcp-playstatus', function AvrcpPlayStatusHandler(message) {
+	    //send currently playStatus update
+	    dump('avrcp13 Player------AvrcpPlayStatus');
+	    var info = {status: null,
+                duration: self.audio.duration,
+                currentTime: self.audio.currentTime};
+
+	    if (self.isStpped)
+	      info.status = 'stop';
+	    else if (self.isPlaying)
+	      info.status = 'play';
+	    else if (!self.isPlaying)
+	      info.status = 'pasue';
+	    if (defaultAdapter != null) {
+		    dump('avrcp13 play status:'+info.status+', duration:'+ info.duration + 'currentTime:' + info.currentTime);
+	      defaultAdapter.sendPlayStatus(info);
+	    }
+    });
   },
 
   clean: function pv_clean() {
@@ -342,6 +361,7 @@ var PlayerView = {
   },
 
   updatePlayingStatus: function pv_updatePlayingStatus() {
+  /*
     var info = {status: null,
                 duration: this.audio.duration,
                 currentTime: this.audio.currentTime};
@@ -352,9 +372,34 @@ var PlayerView = {
       info.status = 'play';
     else if (!this.isPlaying)
       info.status = 'pasue';
+  */
+  //  private final static int STATUS_STOPPED = 0X00;
+  //  private final static int STATUS_PLAYING = 0X01;
+  //  private final static int STATUS_PAUSED = 0X02;
+  //  private final static int STATUS_FWD_SEEK = 0X03;
+  //  private final static int STATUS_REV_SEEK = 0X04;
+  //  private final static int STATUS_ERROR = 0XFF;
+  var NOTIFICATION_STATUS = {
+	  STATUS_STOPPED:  '0x00',
+    STATUS_PLAYING:  '0x01',
+    STATUS_PAUSED:  '0x02',
+    STATUS_FWD_SEEK:  '0x03',
+    STATUS_REV_SEEK: '0x04'
+  };
+  var status_info = {event_type: '0x1',
+	      data: null};
+  //Update Notification here
+  if (this.isStpped)
+    status_info.data = NOTIFICATION_STATUS.STATUS_STOPPED;
+  else if (this.isPlaying)
+    status_info.data = NOTIFICATION_STATUS.STATUS_PLAYING;
+  else if (!this.isPlaying)
+    status_info.data = NOTIFICATION_STATUS.STATUS_PAUSED;
 
-
-    return info;
+  //just for test
+  dump('notifcation: '+status_info.event_type+','+ status_info.data);
+  defaultAdapter.sendNotification(status_info.event_type, status_info.data);
+  //  return info;
 
   },
 
